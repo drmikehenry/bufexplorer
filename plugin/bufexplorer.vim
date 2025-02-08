@@ -682,12 +682,34 @@ function! s:CalculateBufferDetails(buf, name)
     let buf = a:buf
     let buf.isterminal = getbufvar(buf._bufnr, '&buftype') == 'terminal'
     if buf.isterminal
-        let buf.fullname = a:name
         let buf.isdir = 0
-    else
-        let buf.fullname = simplify(fnamemodify(a:name, ':p'))
-        let buf.isdir = getftype(buf.fullname) == "dir"
+        " Neovim uses paths with `term://` prefix, e.g.:
+        " - Unix:
+        "   term://~/tmp/sort//1464953:/bin/bash
+        " - Windows:
+        "   term://C:\apps\nvim-win64\bin//6408:C:\Windows\system32\cmd.exe
+        " Vim uses paths starting with `!`, e.g.:
+        " - Unix:
+        "   !/bin/bash
+        " - Windows:
+        "   !C:\Windows\system32\cmd.exe
+        let buf.fullname = a:name
+        if buf.fullname =~# '^term://'
+            " ['term:', directory, 'PID:shell']
+            let parts = split(buf.fullname, '//', 1)
+            let buf.shortname = parts[-1]
+            let buf.path = parts[1]
+        else
+            let buf.shortname = fnamemodify(buf.fullname, ':t')
+            let buf.path = '?'
+        endif
+        let buf.homename = buf.fullname
+        let buf.relativename = buf.fullname
+        let buf.relativepath = buf.path
+        return
     endif
+    let buf.fullname = simplify(fnamemodify(a:name, ':p'))
+    let buf.isdir = getftype(buf.fullname) == "dir"
     if buf.isdir
         " `buf.fullname` ends with a path separator; this will be
         " removed via the first `:h` applied to `buf.fullname` (except
