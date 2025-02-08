@@ -1192,6 +1192,13 @@ function! s:UpdateHelpStatus()
     setlocal nomodifiable
 endfunction
 
+" Key_number {{{2
+function! s:Key_number(line)
+    let _bufnr = str2nr(a:line)
+    let key = [_bufnr]
+    return key
+endfunction
+
 " Key_name {{{2
 function! s:Key_name(line)
     let _bufnr = str2nr(a:line)
@@ -1305,8 +1312,7 @@ function! s:SortListing()
     let sort = s:firstBufferLine.",$sort".((g:bufExplorerReverseSort == 1) ? "!": "")
 
     if g:bufExplorerSortBy == "number"
-        " Easiest case.
-        execute sort 'n'
+        call s:SortByKeyFunc("<SID>Key_number")
     elseif g:bufExplorerSortBy == "name"
         call s:SortByKeyFunc("<SID>Key_name")
     elseif g:bufExplorerSortBy == "fullpath"
