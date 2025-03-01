@@ -1065,6 +1065,8 @@ function! s:SelectBuffer(...)
         endif
 
         let _bufNbr = str2nr(getline('.'))
+        call writefile([printf('Bufx: chose buffer #%d', _bufNbr)],
+                \ '/tmp/bufx.log', 'a')
 
         " Check and see if we are running BufferExplorer via WinManager.
         if exists("b:displayMode") && b:displayMode == "winmanager"
@@ -1113,11 +1115,16 @@ function! s:SelectBuffer(...)
         else
             " Request to open in current (BufExplorer) window.
             if g:bufExplorerFindActive && tabNbr > 0
+                call writefile([printf('Bufx: found buf# %d in tab #%d',
+                        \ _bufNbr, tabNbr)],
+                        \ '/tmp/bufx.log', 'a')
                 " Close BufExplorer window and switch to existing tab/window.
                 call s:Close()
                 execute tabNbr . "tabnext"
                 execute bufwinnr(_bufNbr) . "wincmd w"
             else
+                call writefile([printf('Bufx: buf# %d not in a tab', _bufNbr)],
+                        \ '/tmp/bufx.log', 'a')
                 " Use BufExplorer window for the buffer.
                 execute "keepjumps keepalt silent b!" _bufNbr
             endif
